@@ -41,23 +41,30 @@
     <div id="result" class="result" style="display: none;"></div>
     
     <script>
-        function calculateGreenRead(paces, actual_slope, green_speed, uphill) {
-            var one_percent_break = ((paces*1.0936) * 2) - 1;
-            var actual_break = one_percent_break * actual_slope;
-            var speed_adjustment = (green_speed - 10) * 0.1 * actual_break;
-            var adjusted_break = actual_break + speed_adjustment;
-            if (uphill) {
-                adjusted_break *= Math.pow(0.95, actual_slope); // Subtract 5% for each percent uphill
-            } else {
-                adjusted_break *= Math.pow(1.05, actual_slope); // Add 5% for each percent downhill
-            }
-            return {
-                '1% Break (inches)': one_percent_break.toFixed(2),
-                'Actual Break (inches)': actual_break.toFixed(2),
-                'Adjusted Break (inches)': adjusted_break.toFixed(2)
-            };
-        }
+        function calculateGreenRead(paces, actual_slope, green_speed, updown_slope, isUphill) {
+        // Step 1: Convert meters (paces) to yards, then calculate 1% break
+        var one_percent_break = ((paces * 1.0936) * 2) - 1;
 
+        // Step 2: Multiply by actual side slope %
+        var actual_break = one_percent_break * actual_slope;
+
+        // Step 3: Adjust for green speed
+        var speed_adjustment = (green_speed - 10) * 0.1 * actual_break;
+        var adjusted_break = actual_break + speed_adjustment;
+
+        // Step 4: Adjust for uphill/downhill slope (%)
+        var updown_factor = isUphill
+            ? 1 - (0.05 * updown_slope)  // Subtract 5% per % uphill
+            : 1 + (0.05 * updown_slope); // Add 5% per % downhill
+
+        adjusted_break *= updown_factor;
+
+        return {
+            '1% Break (inches)': one_percent_break.toFixed(2),
+            'Actual Break (inches)': actual_break.toFixed(2),
+            'Adjusted Break (inches)': adjusted_break.toFixed(2)
+        };
+    }
         document.getElementById('calcForm').addEventListener('submit', function(e) {
             e.preventDefault();
             var paces = parseFloat(document.getElementById('paces').value);
