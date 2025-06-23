@@ -13,11 +13,12 @@
         button:hover { background: #45a049; }
         .result { margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px; }
         .error { color: red; margin-top: 10px; }
+        small { color: #666; display: block; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <h1>Golf Green Read Calculator <span style="text-transform: lowercase;">(using tour read method)</span></h1>
-    
+
     <form id="calcForm">
         <div class="form-group">
             <label for="paces">Paces (meters):</label>
@@ -30,6 +31,10 @@
         <div class="form-group">
             <label for="green_speed">Green Speed (10 = baseline):</label>
             <input type="number" id="green_speed" name="green_speed" step="0.1" required>
+        </div>
+        <div class="form-group">
+            <label>Slope Direction (only one):</label>
+            <small>Enter a value for either uphill or downhill slope — not both.</small>
         </div>
         <div class="form-group">
             <label for="uphill_slope">Uphill Slope (%):</label>
@@ -50,7 +55,7 @@
             // Convert meters to yards
             var yards = paces * 1.0936;
 
-            // Step 1: 1% break formula
+            // Step 1: Calculate 1% break
             var one_percent_break = (yards * 2) - 1;
 
             // Step 2: Apply side slope
@@ -66,9 +71,9 @@
             }
 
             if (uphill_slope > 0) {
-                adjusted_break *= 1 - (0.05 * uphill_slope);
+                adjusted_break *= 1 - (0.05 * uphill_slope); // Reduce break for uphill
             } else if (downhill_slope > 0) {
-                adjusted_break *= 1 + (0.05 * downhill_slope);
+                adjusted_break *= 1 + (0.05 * downhill_slope); // Increase break for downhill
             }
 
             return {
