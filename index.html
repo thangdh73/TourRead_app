@@ -13,7 +13,6 @@
         button:hover { background: #45a049; }
         .result { margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px; }
         .error { color: red; margin-top: 10px; }
-        small { color: #666; display: block; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -33,16 +32,16 @@
             <input type="number" id="green_speed" name="green_speed" step="0.1" required>
         </div>
         <div class="form-group">
-            <label>Slope Direction (only one):</label>
-            <small>Enter a value for either uphill or downhill slope — not both.</small>
+            <label for="directional_slope">Uphill/Downhill Slope (%):</label>
+            <input type="number" id="directional_slope" name="directional_slope" step="0.1" value="0">
         </div>
         <div class="form-group">
-            <label for="uphill_slope">Uphill Slope (%):</label>
-            <input type="number" id="uphill_slope" name="uphill_slope" step="0.1" value="0">
-        </div>
-        <div class="form-group">
-            <label for="downhill_slope">Downhill Slope (%):</label>
-            <input type="number" id="downhill_slope" name="downhill_slope" step="0.1" value="0">
+            <label for="slope_direction">Slope Direction:</label>
+            <select id="slope_direction" name="slope_direction">
+                <option value="none">None</option>
+                <option value="uphill">Uphill</option>
+                <option value="downhill">Downhill</option>
+            </select>
         </div>
         <button type="submit">Calculate</button>
     </form>
@@ -51,11 +50,11 @@
     <div id="error" class="error"></div>
 
     <script>
-        function calculateGreenRead(paces, actual_slope, green_speed, uphill_slope, downhill_slope) {
+        function calculateGreenRead(paces, actual_slope, green_speed, directional_slope, slope_direction) {
             // Convert meters to yards
             var yards = paces * 1.0936;
 
-            // Step 1: Calculate 1% break
+            // Step 1: 1% break
             var one_percent_break = (yards * 2) - 1;
 
             // Step 2: Apply side slope
@@ -65,15 +64,11 @@
             var speed_adjustment = (green_speed - 10) * 0.1 * actual_break;
             var adjusted_break = actual_break + speed_adjustment;
 
-            // Step 4: Uphill/downhill adjustment
-            if (uphill_slope > 0 && downhill_slope > 0) {
-                return { error: "Please enter either uphill or downhill slope, not both." };
-            }
-
-            if (uphill_slope > 0) {
-                adjusted_break *= 1 - (0.05 * uphill_slope); // Reduce break for uphill
-            } else if (downhill_slope > 0) {
-                adjusted_break *= 1 + (0.05 * downhill_slope); // Increase break for downhill
+            // Step 4: Adjust for uphill/downhill
+            if (slope_direction === "uphill") {
+                adjusted_break *= 1 - (0.05 * directional_slope);
+            } else if (slope_direction === "downhill") {
+                adjusted_break *= 1 + (0.05 * directional_slope);
             }
 
             return {
@@ -89,24 +84,19 @@
             var paces = parseFloat(document.getElementById('paces').value);
             var actual_slope = parseFloat(document.getElementById('actual_slope').value);
             var green_speed = parseFloat(document.getElementById('green_speed').value);
-            var uphill_slope = parseFloat(document.getElementById('uphill_slope').value);
-            var downhill_slope = parseFloat(document.getElementById('downhill_slope').value);
+            var directional_slope = parseFloat(document.getElementById('directional_slope').value);
+            var slope_direction = document.getElementById('slope_direction').value;
 
-            var result = calculateGreenRead(paces, actual_slope, green_speed, uphill_slope, downhill_slope);
+            var result = calculateGreenRead(paces, actual_slope, green_speed, directional_slope, slope_direction);
 
-            if (result.error) {
-                document.getElementById('error').textContent = result.error;
-                document.getElementById('result').style.display = 'none';
-            } else {
-                document.getElementById('error').textContent = '';
-                document.getElementById('result').innerHTML = `
-                    <h3>Results:</h3>
-                    <p><strong>1% Break:</strong> ${result['1% Break (inches)']} inches</p>
-                    <p><strong>Actual Break:</strong> ${result['Actual Break (inches)']} inches</p>
-                    <p><strong>Adjusted Break:</strong> ${result['Adjusted Break (inches)']} inches</p>
-                `;
-                document.getElementById('result').style.display = 'block';
-            }
+            document.getElementById('error').textContent = '';
+            document.getElementById('result').innerHTML = `
+                <h3>Results:</h3>
+                <p><strong>1% Break:</strong> ${result['1% Break (inches)']} inches</p>
+                <p><strong>Actual Break:</strong> ${result['Actual Break (inches)']} inches</p>
+                <p><strong>Adjusted Break:</strong> ${result['Adjusted Break (inches)']} inches</p>
+            `;
+            document.getElementById('result').style.display = 'block';
         });
     </script>
 </body>
