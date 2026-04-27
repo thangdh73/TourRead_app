@@ -3,7 +3,8 @@ from flask import Flask, request, jsonify, render_template_string
 app = Flask(__name__)
 
 def calculate_green_read(paces, actual_slope, green_speed, uphill=False):
-    one_percent_break = (paces * 2) - 1
+    yards = paces * 1.0936
+    one_percent_break = (yards * 2) - 1
     actual_break = one_percent_break * actual_slope
     speed_adjustment = (green_speed - 10) * 0.1 * actual_break
     adjusted_break = actual_break + speed_adjustment
@@ -40,7 +41,7 @@ def home():
         <h1>Golf Green Read Calculator</h1>
         <form id="calcForm">
             <div class="form-group">
-                <label for="paces">Paces:</label>
+                <label for="paces">Paces (meters):</label>
                 <input type="number" id="paces" name="paces" step="0.1" required>
             </div>
             <div class="form-group">
