@@ -20,8 +20,16 @@
 
     <form id="calcForm">
         <div class="form-group">
-            <label for="paces">Paces (meters):</label>
+            <label for="paces">Distance:</label>
             <input type="number" id="paces" name="paces" step="0.1" required>
+        </div>
+        <div class="form-group">
+            <label for="unit">Unit:</label>
+            <select id="unit" name="unit">
+                <option value="meters">Meters</option>
+                <option value="yards">Yards</option>
+                <option value="feet">Feet</option>
+            </select>
         </div>
         <div class="form-group">
             <label for="actual_slope">Side Slope (%):</label>
@@ -50,9 +58,14 @@
     <div id="error" class="error"></div>
 
     <script>
-        function calculateGreenRead(paces, actual_slope, green_speed, directional_slope, slope_direction) {
-            // Convert meters to yards
-            var yards = paces * 1.0936;
+        function convertToYards(distance, unit) {
+            if (unit === 'meters') return distance * 1.0936;
+            if (unit === 'feet') return distance / 3;
+            return distance;
+        }
+
+        function calculateGreenRead(paces, actual_slope, green_speed, directional_slope, slope_direction, unit) {
+            var yards = convertToYards(paces, unit);
 
             // Step 1: 1% break
             var one_percent_break = (yards * 2) - 1;
@@ -86,8 +99,9 @@
             var green_speed = parseFloat(document.getElementById('green_speed').value);
             var directional_slope = parseFloat(document.getElementById('directional_slope').value);
             var slope_direction = document.getElementById('slope_direction').value;
+            var unit = document.getElementById('unit').value;
 
-            var result = calculateGreenRead(paces, actual_slope, green_speed, directional_slope, slope_direction);
+            var result = calculateGreenRead(paces, actual_slope, green_speed, directional_slope, slope_direction, unit);
 
             document.getElementById('error').textContent = '';
             document.getElementById('result').innerHTML = `

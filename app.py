@@ -2,16 +2,24 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-def calculate_green_read(paces, actual_slope, green_speed, uphill=False):
-    one_percent_break = (paces * 2) - 1
+def convert_to_yards(distance, unit):
+    if unit == 'meters':
+        return distance * 1.0936
+    elif unit == 'feet':
+        return distance / 3
+    return distance
+
+def calculate_green_read(paces, actual_slope, green_speed, uphill=False, unit='yards'):
+    yards = convert_to_yards(paces, unit)
+    one_percent_break = (yards * 2) - 1
     actual_break = one_percent_break * actual_slope
     speed_adjustment = (green_speed - 10) * 0.1 * actual_break
     adjusted_break = actual_break + speed_adjustment
     
     if uphill:
-        adjusted_break *= 0.95 ** actual_slope  # Subtract 5% for each percent uphill
+        adjusted_break *= 0.95 ** actual_slope
     else:
-        adjusted_break *= 1.05 ** actual_slope  # Add 5% for each percent downhill
+        adjusted_break *= 1.05 ** actual_slope
     
     return {
         '1% Break (inches)': round(one_percent_break, 2),
@@ -40,8 +48,16 @@ def home():
         <h1>Golf Green Read Calculator</h1>
         <form id="calcForm">
             <div class="form-group">
-                <label for="paces">Paces:</label>
+                <label for="paces">Distance:</label>
                 <input type="number" id="paces" name="paces" step="0.1" required>
+            </div>
+            <div class="form-group">
+                <label for="unit">Unit:</label>
+                <select id="unit" name="unit">
+                    <option value="meters">Meters</option>
+                    <option value="yards">Yards</option>
+                    <option value="feet">Feet</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="actual_slope">Actual Slope (%):</label>
@@ -70,7 +86,8 @@ def home():
                     paces: parseFloat(formData.get('paces')),
                     actual_slope: parseFloat(formData.get('actual_slope')),
                     green_speed: parseFloat(formData.get('green_speed')),
-                    uphill: formData.get('uphill') === 'true'
+                    uphill: formData.get('uphill') === 'true',
+                    unit: formData.get('unit')
                 };
                 
                 try {
@@ -115,8 +132,9 @@ def calculate():
         actual_slope = data['actual_slope']
         green_speed = data['green_speed']
         uphill = data['uphill']
+        unit = data.get('unit', 'yards')
 
-        result = calculate_green_read(paces, actual_slope, green_speed, uphill)
+        result = calculate_green_read(paces, actual_slope, green_speed, uphill, unit)
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
